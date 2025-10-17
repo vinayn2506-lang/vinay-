@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Report - Satyam International School</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .font-pacifico { font-family: 'Pacifico', cursive; }
+        .mind-map-container {
+            position: relative;
+            width: 100%;
+            max-width: 550px; /* Adjusted for better spacing */
+            height: 550px; /* Adjusted for better spacing */
+            margin: auto;
+        }
+        .mind-map-center {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); z-index: 10;
+        }
+        .subject-node {
+            position: absolute;
+            width: 120px; /* Slightly smaller nodes */
+            height: 120px; /* Slightly smaller nodes */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .subject-node:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .subject-line {
+            position: absolute; top: 50%; left: 50%;
+            width: 3px; transform-origin: top left; z-index: 1;
+        }
+        #confetti-canvas {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999;
+        }
+        .fade-in { animation: fadeInAnimation 0.8s ease-in forwards; opacity: 0; }
+        .fade-in-delay-1 { animation-delay: 0.2s; }
+        .fade-in-delay-2 { animation-delay: 0.4s; }
+        .fade-in-delay-3 { animation-delay: 0.6s; }
+        .fade-in-delay-4 { animation-delay: 0.8s; }
+
+        @keyframes fadeInAnimation {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .topper-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .topper-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body class="text-gray-800 bg-gray-100">
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-violet-200 via-pink-200 to-rose-200">
+        <div class="w-full max-w-6xl mx-auto">
+            <div class="glass-card p-8 sm:p-12 rounded-2xl shadow-2xl text-center">
+                <img src="https://placehold.co/100x100/6D28D9/FFFFFF?text=SIS" alt="School Logo" class="mx-auto mb-4 rounded-full border-4 border-white shadow-lg">
+                <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 font-pacifico">Welcome Parents!</h1>
+                <h2 class="text-xl sm:text-2xl font-semibold text-violet-700 mt-2">Satyam International School - Grade 7 Elite Block</h2>
+                <p class="text-lg text-gray-600 mt-1">Class Teacher: Ms. Suchitra</p>
+
+                <div class="mt-8 text-left text-gray-700 max-w-2xl mx-auto">
+                    <p>We are delighted to have you at our Parent-Teacher Meeting. This interactive report provides a comprehensive overview of your child's performance in the recent Summative Assessment-1 (2025-26). Please select your child's name to begin.</p>
+                </div>
+
+                <div class="mt-8 max-w-lg mx-auto">
+                    <select id="student-select" class="w-full p-4 border-2 border-violet-300 rounded-lg text-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 shadow-inner">
+                        <option value="">-- Select Your Child's Name --</option>
+                    </select>
+                    <button id="view-report-btn" class="mt-6 w-full bg-gradient-to-r from-pink-500 to-violet-600 text-white font-bold py-4 px-6 rounded-lg text-xl hover:shadow-xl transition-all transform hover:scale-105 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:scale-100 shadow-lg" disabled>
+                        View Report Card
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center">
+                <h3 class="text-4xl font-bold text-gray-800 mb-8 font-pacifico drop-shadow-lg">Our Shining Stars!</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                    <div id="topper-rank-1" class="topper-card bg-white p-6 rounded-2xl shadow-lg fade-in"></div>
+                    <div id="topper-rank-2" class="topper-card bg-white p-6 rounded-2xl shadow-lg fade-in fade-in-delay-1"></div>
+                    <div id="topper-rank-3" class="topper-card bg-white p-6 rounded-2xl shadow-lg fade-in fade-in-delay-2"></div>
+                    <div id="topper-rank-4" class="topper-card bg-white p-6 rounded-2xl shadow-lg fade-in fade-in-delay-3"></div>
+                    <div id="topper-rank-5" class="topper-card bg-white p-6 rounded-2xl shadow-lg fade-in fade-in-delay-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Screen -->
+    <div id="report-screen" class="hidden min-h-screen w-full p-4 sm:p-8 bg-gradient-to-br from-violet-100 to-rose-100">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12 fade-in">
+                <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 font-pacifico">Performance Report</h1>
+                <h2 id="student-name-header" class="text-2xl sm:text-3xl font-semibold text-violet-600 mt-2"></h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-gradient-to-br from-cyan-400 to-blue-600 text-white p-6 rounded-2xl shadow-xl fade-in fade-in-delay-1 text-center">
+                    <h3 class="text-lg font-semibold opacity-80"><i class="fa-solid fa-calculator mr-2"></i>Total Marks</h3>
+                    <p id="total-marks" class="text-5xl font-bold mt-2"></p>
+                </div>
+                <div class="bg-gradient-to-br from-lime-400 to-green-600 text-white p-6 rounded-2xl shadow-xl fade-in fade-in-delay-2 text-center">
+                    <h3 class="text-lg font-semibold opacity-80"><i class="fa-solid fa-percentage mr-2"></i>Percentage</h3>
+                    <p id="percentage" class="text-5xl font-bold mt-2"></p>
+                </div>
+                <div class="bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white p-6 rounded-2xl shadow-xl fade-in fade-in-delay-3 text-center">
+                    <h3 class="text-lg font-semibold opacity-80"><i class="fa-solid fa-comment-dots mr-2"></i>Overall Remark</h3>
+                    <p id="overall-remark" class="text-3xl font-bold mt-4"></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <div class="bg-white p-6 rounded-2xl shadow-lg fade-in fade-in-delay-2">
+                    <h3 class="text-2xl font-bold text-center mb-4">Click on a Subject!</h3>
+                    <div id="mind-map" class="mind-map-container">
+                        <div class="mind-map-center w-44 h-44 bg-violet-600 text-white rounded-full flex items-center justify-center text-center p-4 shadow-xl">
+                            <span class="font-bold text-xl">Academic Performance</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-lg fade-in fade-in-delay-3">
+                    <h3 class="text-2xl font-bold mb-4">Teacher's Analysis</h3>
+                    <div id="analysis-content" class="space-y-4 text-gray-600"></div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12">
+                 <button id="back-btn" class="bg-violet-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-violet-700 transition-transform transform hover:scale-105">
+                    <i class="fa-solid fa-arrow-left mr-2"></i>Back to Welcome Screen
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="subject-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50">
+        <div id="modal-content" class="rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all scale-95 opacity-0">
+             <h3 id="modal-title" class="text-3xl font-bold mb-2"></h3>
+             <p id="modal-score" class="text-5xl font-bold mb-4"></p>
+             <p id="modal-remark" class="text-lg mb-6"></p>
+             <button id="close-modal-btn" class="font-bold py-2 px-6 rounded-lg">Close</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DATA ---
+            const studentsData = [
+                { id: 1, name: "ANKUR OMPRAKASH SURYAWANSHI", marks: { english: 79, hindi: 79, kannada: 79, maths: 80, science: 80, social: 80, comp: 80 }, total: 477, percentage: 99.38 },
+                { id: 2, name: "NITEESH KUMAR GK", marks: { english: 74, hindi: 79, kannada: 79, maths: 80, science: 80, social: 80, comp: 78 }, total: 471, percentage: 98.12 },
+                { id: 3, name: "AVIKSHITA K", marks: { english: 76, hindi: 78, kannada: 78, maths: 79, science: 80, social: 80, comp: 79 }, total: 469, percentage: 97.71 },
+                { id: 4, name: "V R HYNDAVI", marks: { english: 77, hindi: 79, kannada: 73, maths: 78, science: 75, social: 80, comp: 75 }, total: 462, percentage: 96.25 },
+                { id: 5, name: "ANANYA C", marks: { english: 75, hindi: 78, kannada: 79, maths: 76, science: 75, social: 78, comp: 72 }, total: 461, percentage: 96.04 },
+                { id: 6, name: "ADITI PRASAD B", marks: { english: 76, hindi: 76, kannada: 74, maths: 74, science: 80, social: 78, comp: 76 }, total: 458, percentage: 95.42 },
+                { id: 7, name: "INDHU M", marks: { english: 76, hindi: 78, kannada: 77, maths: 76, science: 73, social: 71, comp: 79 }, total: 451, percentage: 93.96 },
+                { id: 8, name: "HG SHIFA NAAZ", marks: { english: 77, hindi: 79, kannada: 76, maths: 67, science: 76, social: 75, comp: 77 }, total: 450, percentage: 93.75 },
+                { id: 9, name: "JAANAVI K", marks: { english: 74, hindi: 71, kannada: 76, maths: 73, science: 75, social: 79, comp: 75 }, total: 443, percentage: 93.33 },
+                { id: 10, name: "BR NAINIKA", marks: { english: 79, hindi: 75, kannada: 74, maths: 65, science: 75, social: 75, comp: 76 }, total: 443, percentage: 92.29 },
+                { id: 11, name: "SANJEEV DATTA M D", marks: { english: 69, hindi: 74, kannada: 69, maths: 78, science: 75, social: 71, comp: 68 }, total: 436, percentage: 90.83 },
+                { id: 12, name: "SHREYANS REDDY P", marks: { english: 77, hindi: 68, kannada: 65, maths: 77, science: 75, social: 70, comp: 55 }, total: 432, percentage: 90.00 },
+                { id: 13, name: "SINCHANA", marks: { english: 71, hindi: 67, kannada: 73, maths: 72, science: 70, social: 75, comp: 72 }, total: 428, percentage: 89.17 },
+                { id: 14, name: "R SANVI", marks: { english: 70, hindi: 70, kannada: 70, maths: 50, science: 70, social: 74, comp: 57 }, total: 404, percentage: 84.17 },
+                { id: 15, name: "K ROHITH", marks: { english: 73, hindi: 66, kannada: 59, maths: 69, science: 60, social: 72, comp: 43 }, total: 399, percentage: 83.12 },
+                { id: 16, name: "NIKHIL PR", marks: { english: 74, hindi: 61, kannada: 55, maths: 75, science: 63, social: 71, comp: 57 }, total: 399, percentage: 83.12 },
+                { id: 17, name: "SHREYA HUGAR", marks: { english: 70, hindi: 69, kannada: 67, maths: 48, science: 67, social: 63, comp: 67 }, total: 384, percentage: 80.00 },
+                { id: 18, name: "KUSHAL SAI P", marks: { english: 54, hindi: 63, kannada: 63, maths: 62, science: 64, social: 75, comp: 61 }, total: 381, percentage: 79.38 },
+                { id: 19, name: "NYUMAA SUSHAL G S", marks: { english: 66, hindi: 56, kannada: 55, maths: 74, science: 63, social: 65, comp: 57 }, total: 379, percentage: 78.96 },
+                { id: 20, name: "NOOR MAHAMMED", marks: { english: 66, hindi: 73, kannada: 52, maths: 57, science: 60, social: 66, comp: 53 }, total: 374, percentage: 77.92 },
+                { id: 21, name: "HEMA N", marks: { english: 61, hindi: 65, kannada: 66, maths: 62, science: 52, social: 62, comp: 63 }, total: 368, percentage: 76.67 },
+                { id: 22, name: "B DURGA SHREE LASKHMI", marks: { english: 69, hindi: 48, kannada: 56, maths: 68, science: 62, social: 59, comp: 68 }, total: 362, percentage: 75.42 },
+                { id: 23, name: "JAIVASU LALEMMAGARI", marks: { english: 58, hindi: 60, kannada: 56, maths: 64, science: 51, social: 71, comp: 61 }, total: 360, percentage: 75.00 },
+                { id: 24, name: "VEGIRAJU GANESH VARMA", marks: { english: 54, hindi: 60, kannada: 61, maths: 57, science: 53, social: 69, comp: 54 }, total: 354, percentage: 73.75 },
+                { id: 25, name: "SOMA LAKSHMINATH", marks: { english: 62, hindi: 45, kannada: 34, maths: 57, science: 72, social: 75, comp: 59 }, total: 345, percentage: 71.88 },
+                { id: 26, name: "RITHVIK K R", marks: { english: 56, hindi: 65, kannada: 56, maths: 56, science: 52, social: 51, comp: 54 }, total: 336, percentage: 70.00 },
+                { id: 27, name: "RAHUL M", marks: { english: 67, hindi: 48, kannada: 35, maths: 46, science: 50, social: 63, comp: 57 }, total: 309, percentage: 64.38 },
+                { id: 28, name: "VENKATA DHANUSH SAMPANGI", marks: { english: 58, hindi: 40, kannada: 47, maths: 52, science: 45, social: 63, comp: 38 }, total: 305, percentage: 63.54 },
+                { id: 29, name: "M GOUTHAM KUMAR", marks: { english: 50, hindi: 56, kannada: 57, maths: 47, science: 46, social: 49, comp: 56 }, total: 305, percentage: 63.54 },
+                { id: 30, name: "AASHIRITHI SARVA CHANDALURI", marks: { english: 46, hindi: 48, kannada: 43, maths: 56, science: 52, social: 59, comp: 45 }, total: 304, percentage: 63.33 },
+                { id: 31, name: "SAI THIRUMALA K", marks: { english: 57, hindi: 47, kannada: 37, maths: 43, science: 50, social: 57, comp: 52 }, total: 291, percentage: 60.62 },
+                { id: 32, name: "SHARANA GOWDA B", marks: { english: 45, hindi: 53, kannada: 56, maths: 57, science: 40, social: 36, comp: 35 }, total: 287, percentage: 59.79 },
+                { id: 33, name: "RAJNISH RAY", marks: { english: 45, hindi: 63, kannada: 35, maths: 35, science: 51, social: 57, comp: 42 }, total: 286, percentage: 59.58 },
+                { id: 34, name: "P VARUN CHOWDARI", marks: { english: 35, hindi: 38, kannada: 28, maths: 54, science: 40, social: 34, comp: 49 }, total: 229, percentage: 47.71 },
+                { id: 35, name: "CHARAN", marks: { english: 36, hindi: 59, kannada: 33, maths: 34, science: 30, social: 28, comp: 35 }, total: 221, percentage: 46.04 },
+                { id: 36, name: "SK CHARAN REDDY", marks: { english: 25, hindi: 31, kannada: 57, maths: 29, science: 30, social: 28, comp: 26 }, total: 200, percentage: 41.67 },
+                { id: 37, name: "B LOKESH", marks: { english: 22, hindi: 45, kannada: 27, maths: 35, science: 31, social: 26, comp: 29 }, total: 186, percentage: 38.75 }
+            ];
+
+            const toppers = [
+                { rank: 1, names: ["ANKUR OMPRAKASH SURYAWANSHI"], icon: "fa-trophy", color: "text-amber-400" },
+                { rank: 2, names: ["NITEESH KUMAR GK", "AVIKSHITA K"], icon: "fa-medal", color: "text-slate-400" },
+                { rank: 3, names: ["V R HYNDAVI", "ANANYA C"], icon: "fa-medal", color: "text-orange-400" },
+                { rank: 4, names: ["ADITI PRASAD B"], icon: "fa-award", color: "text-cyan-500" },
+                { rank: 5, names: ["INDHU M", "HG SHIFA NAAZ"], icon: "fa-award", color: "text-rose-500" },
+            ];
+            
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const reportScreen = document.getElementById('report-screen');
+            const studentSelect = document.getElementById('student-select');
+            const viewReportBtn = document.getElementById('view-report-btn');
+            const backBtn = document.getElementById('back-btn');
+            const subjectModal = document.getElementById('subject-modal');
+            const modalContent = document.getElementById('modal-content');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            function getRemark(score) {
+                if (score >= 75) return "Excellent! A strong grasp of concepts.";
+                if (score >= 65) return "Very Good! Consistent effort shown.";
+                if (score >= 55) return "Good! Showing steady progress.";
+                if (score >= 45) return "Satisfactory. Building a good foundation.";
+                if (score >= 35) return "Needs Improvement. Practice is key.";
+                return "Requires significant attention.";
+            }
+            
+            function getOverallRemark(percentage) {
+                if (percentage >= 90) return "Excellent Performance!";
+                if (percentage >= 75) return "Very Good Progress!";
+                if (percentage >= 60) return "Good, Consistent Effort!";
+                return "Keep striving for more!";
+            }
+
+            function populateDropdown() {
+                studentsData.sort((a, b) => a.name.localeCompare(b.name));
+                studentsData.forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student.id;
+                    option.textContent = student.name;
+                    studentSelect.appendChild(option);
+                });
+            }
+
+            function displayReport(studentId) {
+                const student = studentsData.find(s => s.id == studentId);
+                if (!student) return;
+
+                document.getElementById('student-name-header').textContent = student.name;
+                document.getElementById('total-marks').textContent = `${student.total} / 480`;
+                document.getElementById('percentage').textContent = `${student.percentage}%`;
+                document.getElementById('overall-remark').textContent = getOverallRemark(student.percentage);
+                
+                const analysisContent = document.getElementById('analysis-content');
+                let strengths = [], areasForDevelopment = [];
+                Object.entries(student.marks).forEach(([subject, score]) => {
+                    if(score >= 65) strengths.push(subject.charAt(0).toUpperCase() + subject.slice(1));
+                    else if (score < 50) areasForDevelopment.push(subject.charAt(0).toUpperCase() + subject.slice(1));
+                });
+
+                analysisContent.innerHTML = `
+                    <p><strong>General Remarks:</strong> ${student.name.split(' ')[0]} has demonstrated ${getOverallRemark(student.percentage).toLowerCase().replace('!', '')}. A commendable effort has been observed.</p>
+                    <div class="mt-4"><strong class="text-green-600"><i class="fa-solid fa-star mr-2"></i>Areas of Strength:</strong> ${strengths.length > 0 ? strengths.join(', ') : 'Consistent performance across subjects.'}</div>
+                    <div class="mt-2"><strong class="text-red-600"><i class="fa-solid fa-bullseye mr-2"></i>Areas for Development:</strong> ${areasForDevelopment.length > 0 ? areasForDevelopment.join(', ') : 'Excellent work! Keep up the momentum!'}</div>
+                    <p class="mt-4 pt-4 border-t border-gray-200"><strong><i class="fa-solid fa-pen-fancy mr-2"></i>Teacher's Note:</strong> A pleasure to have in class. With continued focus and participation, the potential for growth is immense. Keep up the fantastic work!</p>
+                `;
+
+                const mindMap = document.getElementById('mind-map');
+                mindMap.querySelectorAll('.subject-node, .subject-line').forEach(el => el.remove());
+                
+                const subjects = [
+                    { name: 'english', colorClass: 'red', angle: -90 },
+                    { name: 'science', colorClass: 'orange', angle: -38 },
+                    { name: 'maths', colorClass: 'green', angle: 14 },
+                    { name: 'kannada', colorClass: 'yellow', angle: 66 },
+                    { name: 'social', colorClass: 'teal', angle: 118 },
+                    { name: 'comp', colorClass: 'pink', angle: 170 },
+                    { name: 'hindi', colorClass: 'purple', angle: 222},
+                ];
+                
+                const radius = 190; // distance from center
+                const center = { x: 275, y: 275 }; // center of the container
+                
+                subjects.forEach((subject) => {
+                    const angleRad = (subject.angle - 90) * Math.PI / 180; // Adjust angle for correct positioning
+                    const x = center.x + radius * Math.cos(angleRad);
+                    const y = center.y + radius * Math.sin(angleRad);
+                    
+                    const node = document.createElement('div');
+                    node.className = `subject-node bg-${subject.colorClass}-500 text-white rounded-full flex items-center justify-center text-center p-2 shadow-lg font-bold text-lg`;
+                    node.style.left = `${x - 60}px`; // 60 is half of node width 120px
+                    node.style.top = `${y - 60}px`; // 60 is half of node height 120px
+                    node.textContent = subject.name.charAt(0).toUpperCase() + subject.name.slice(1);
+                    node.dataset.subject = subject.name;
+                    node.dataset.studentId = student.id;
+                    
+                    const line = document.createElement('div');
+                    line.className = 'subject-line';
+                    const colorMap = {red: '#ef4444', purple: '#8b5cf6', yellow: '#eab308', green: '#22c55e', orange: '#f97316', teal: '#14b8a6', pink: '#ec4899'};
+                    line.style.backgroundColor = colorMap[subject.colorClass];
+                    line.style.height = `${radius - 20}px`;
+                    line.style.transform = `translate(${center.x}px, ${center.y}px) rotate(${subject.angle}deg)`;
+
+                    mindMap.appendChild(line);
+                    mindMap.appendChild(node);
+                });
+            }
+            
+            function populateToppers() {
+                toppers.forEach(t => {
+                    const namesHtml = t.names.map(name => `<p class="font-semibold text-gray-700">${name}</p>`).join('');
+                    const topperCard = document.getElementById(`topper-rank-${t.rank}`);
+                    if(topperCard){
+                        topperCard.innerHTML = `
+                            <i class="fa-solid ${t.icon} ${t.color} text-4xl"></i>
+                            <h4 class="text-xl font-bold mt-2 text-gray-800">Rank ${t.rank}</h4>
+                            <div class="mt-2 text-sm">${namesHtml}</div>
+                        `;
+                    }
+                });
+            }
+
+            function showSubjectModal(studentId, subjectName) {
+                const student = studentsData.find(s => s.id == studentId);
+                const score = student.marks[subjectName];
+                const subjectColors = {
+                    english: { bg: 'bg-red-500', text: 'text-red-800' },
+                    hindi: { bg: 'bg-purple-500', text: 'text-purple-800' },
+                    kannada: { bg: 'bg-yellow-500', text: 'text-yellow-800' },
+                    maths: { bg: 'bg-green-500', text: 'text-green-800' },
+                    science: { bg: 'bg-orange-500', text: 'text-orange-800' },
+                    social: { bg: 'bg-teal-500', text: 'text-teal-800' },
+                    comp: { bg: 'bg-pink-500', text: 'text-pink-800' }
+                };
+                modalContent.className = `rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center transform transition-all scale-95 opacity-0 ${subjectColors[subjectName].bg} text-white`;
+                document.getElementById('modal-title').textContent = subjectName.charAt(0).toUpperCase() + subjectName.slice(1);
+                document.getElementById('modal-score').textContent = `${score} / 80`;
+                document.getElementById('modal-remark').innerHTML = `<span class="bg-white/20 px-3 py-1 rounded-full">${getRemark(score)}</span>`;
+                document.getElementById('close-modal-btn').className = "bg-white/80 font-bold py-2 px-6 rounded-lg hover:bg-white " + subjectColors[subjectName].text;
+                subjectModal.classList.remove('hidden');
+                setTimeout(() => modalContent.classList.remove('scale-95', 'opacity-0'), 10);
+            }
+            
+            function hideSubjectModal() {
+                modalContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => subjectModal.classList.add('hidden'), 200);
+            }
+
+            studentSelect.addEventListener('change', () => {
+                viewReportBtn.disabled = studentSelect.value === "";
+            });
+
+            viewReportBtn.addEventListener('click', () => {
+                const studentId = studentSelect.value;
+                if (!studentId) return;
+
+                var myCanvas = document.getElementById('confetti-canvas');
+                var myConfetti = confetti.create(myCanvas, { resize: true });
+                var duration = 2 * 1000; var end = Date.now() + duration;
+
+                (function frame() {
+                  myConfetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#a855f7', '#ffffff', '#ec4899'] });
+                  myConfetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#a855f7', '#ffffff', '#ec4899'] });
+                  if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+                
+                setTimeout(() => {
+                    welcomeScreen.classList.add('hidden');
+                    reportScreen.classList.remove('hidden');
+                    displayReport(studentId);
+                }, 500);
+            });
+            
+            backBtn.addEventListener('click', () => {
+                reportScreen.classList.add('hidden');
+                welcomeScreen.classList.remove('hidden');
+                studentSelect.value = "";
+                viewReportBtn.disabled = true;
+            });
+            
+            document.getElementById('mind-map').addEventListener('click', (e) => {
+                const node = e.target.closest('.subject-node');
+                if (node) showSubjectModal(node.dataset.studentId, node.dataset.subject);
+            });
+            
+            closeModalBtn.addEventListener('click', hideSubjectModal);
+            subjectModal.addEventListener('click', (e) => { if (e.target === subjectModal) hideSubjectModal(); });
+
+            // --- INITIALIZATION ---
+            populateDropdown();
+            populateToppers();
+        });
+    </script>
+</body>
+</html>
