@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satyam Clarity Portal - Class 6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0d0c22;
+            color: #e0e0ff;
+            overflow-x: hidden;
+        }
+        .aurora-background {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: linear-gradient(-45deg, #23a6d5, #23d5ab, #f64f59, #c471ed);
+            background-size: 400% 400%;
+            animation: gradient 20s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .card {
+            background: rgba(13, 12, 34, 0.75);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .main-title {
+            font-family: 'Orbitron', sans-serif; font-weight: 900;
+            text-shadow: 0 0 10px #fff, 0 0 20px #e9a6ff, 0 0 40px #e9a6ff;
+        }
+        .glow-button {
+            background: linear-gradient(90deg, #c471ed, #f64f59);
+            box-shadow: 0 0 15px #f64f59, 0 0 30px #c471ed;
+            transition: all 0.3s ease;
+        }
+        .glow-button:hover {
+            box-shadow: 0 0 25px #f64f59, 0 0 50px #c471ed;
+            transform: scale(1.05);
+        }
+        .welcome-screen {
+            display: flex; position: fixed; inset: 0; z-index: 100;
+            background-color: #0d0c22;
+            align-items: center; justify-content: center; flex-direction: column;
+            transition: opacity 1.5s ease-out;
+        }
+        .welcome-text {
+            opacity: 0; transform: translateY(20px);
+            animation: fadeIn 1.5s forwards;
+        }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+        .progress-bar-container { background: rgba(0,0,0,0.3); border-radius: 99px; padding: 4px; overflow: hidden; }
+        .progress-bar { height: 12px; border-radius: 99px; transition: width 1.5s cubic-bezier(0.23, 1, 0.32, 1); }
+        
+        .aspiration-input {
+            background-color: #e0e0ff;
+            color: #0d0c22;
+            border: 2px solid #c471ed;
+            transition: all 0.3s ease;
+        }
+        .aspiration-input::placeholder { color: #5a5275; }
+        .aspiration-input:focus {
+            box-shadow: 0 0 15px #c471ed;
+            outline: none;
+        }
+        .thank-you-text { animation: thankYouFadeIn 1s forwards; }
+        @keyframes thankYouFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="aurora-background"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="welcome-screen" class="welcome-screen">
+        <h2 class="text-2xl opacity-80 welcome-text" style="animation-delay: 0s;">Welcome, Parents</h2>
+        <h1 class="text-4xl md:text-6xl main-title welcome-text text-center" style="animation-delay: 0.5s;">SATYAM INTERNATIONAL SCHOOL</h1>
+        <p class="text-xl md:text-2xl opacity-80 welcome-text" style="animation-delay: 1s;">Summative Assessment-1 PTM</p>
+    </div>
+
+    <div id="app-container" class="w-full max-w-7xl mx-auto opacity-0" style="transition: opacity 1s ease-in; transition-delay: 3s;">
+        <!-- Selection View -->
+        <div id="selection-view">
+             <div class="card rounded-2xl p-8 md:p-12">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-3xl font-bold text-center mb-2">Class 6 Performance Portal</h2>
+                        <p class="text-center text-purple-300 mb-6">Class Teacher: Mr. Vinay N</p>
+                        <select id="student-select" class="w-full p-4 rounded-xl text-lg bg-gray-900/50 border-2 border-purple-700 focus:ring-4 focus:ring-purple-500 focus:border-purple-500 transition"></select>
+                        <button id="enter-btn" class="mt-6 w-full text-white font-bold py-4 px-8 rounded-xl text-xl glow-button">
+                           View Report
+                        </button>
+                    </div>
+                    <div>
+                         <h2 class="text-3xl font-bold text-center mb-6">Class Achievers</h2>
+                         <div id="toppers-list" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report View (Hidden by default) -->
+        <div id="report-view" class="hidden w-full max-w-4xl mx-auto">
+             <button id="back-btn" class="fixed top-4 left-4 bg-white/10 hover:bg-white/20 text-white font-bold py-2 px-4 rounded-full z-20 backdrop-blur-sm border border-white/20">&larr; Back</button>
+            <div class="card rounded-2xl p-6 md:p-10">
+                 <div class="text-center mb-8">
+                    <h1 class="text-3xl md:text-4xl font-bold" id="student-name-header"></h1>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                         <div class="card rounded-xl p-6 text-center">
+                             <h2 class="text-2xl font-bold mb-4 text-purple-300">Overall Performance</h2>
+                             <div class="flex justify-around">
+                                 <div><p class="opacity-80">Grade</p><p class="text-4xl font-bold" id="overall-grade"></p></div>
+                                 <div><p class="opacity-80">Percent</p><p class="text-4xl font-bold" id="overall-percentage"></p></div>
+                                 <div><p class="opacity-80">Rank</p><p class="text-4xl font-bold" id="overall-rank"></p></div>
+                             </div>
+                         </div>
+                         <div class="card rounded-xl p-6">
+                            <h2 class="text-2xl font-bold text-center mb-4 text-purple-300">Teacher's Insight</h2>
+                            <p id="remarks-text" class="text-center text-purple-200 opacity-90"></p>
+                        </div>
+                    </div>
+                     <div class="card rounded-xl p-6">
+                         <h2 class="text-2xl font-bold text-center mb-6 text-purple-300">Performance Breakdown</h2>
+                         <div id="scorecard-container" class="space-y-4"></div>
+                     </div>
+                </div>
+                 <!-- Aspirations Section -->
+                <div class="mt-8 card rounded-xl p-6">
+                    <h2 class="text-2xl font-bold text-center mb-4 text-purple-300">Future Aspirations</h2>
+                    <div id="aspiration-input-area" class="max-w-md mx-auto text-center">
+                         <p class="mb-4 opacity-80">What career do you wish to see your child pursue?</p>
+                         <input id="aspiration-input" type="text" placeholder="e.g., Doctor, Scientist..." class="aspiration-input w-full p-3 rounded-lg text-center text-lg">
+                         <button id="aspiration-submit" class="mt-4 w-full text-white font-bold py-3 px-6 rounded-lg text-lg glow-button">Submit Aspiration</button>
+                    </div>
+                    <div id="aspiration-result-area" class="hidden text-center">
+                        <p class="text-3xl font-bold text-yellow-300 thank-you-text">All the best and thank you!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const class6Data = {
+             students: [
+                { id: 1, name: "Samrrudhe K", marks: { English: { score: 75, grade: "A1" }, Hindi: { score: 80, grade: "A1" }, Kannada: { score: 78, grade: "A1" }, Maths: { score: 79, grade: "A1" }, Science: { score: 79, grade: "A1" }, Social: { score: 80, grade: "A1" }, Comp: { score: 79, grade: "A1" } }, rank: 1, remarks: "An exemplary student with outstanding performance across all subjects. Samrrudhe's consistency is truly commendable." },
+                { id: 2, name: "Hrithika T", marks: { English: { score: 75, grade: "A1" }, Hindi: { score: 79, grade: "A1" }, Kannada: { score: 73, grade: "A1" }, Maths: { score: 78, grade: "A1" }, Science: { score: 80, grade: "A1" }, Social: { score: 80, grade: "A1" }, Comp: { score: 79, grade: "A1" } }, rank: 2, remarks: "Hrithika shows exceptional talent, especially in Science and Social Studies. A very bright and dedicated learner." },
+                { id: 3, name: "Karthik P", marks: { English: { score: 65, grade: "A2" }, Hindi: { score: 77, grade: "A1" }, Kannada: { score: 79, grade: "A1" }, Maths: { score: 76, grade: "A1" }, Science: { score: 77, grade: "A1" }, Social: { score: 79, grade: "A1" }, Comp: { score: 76, grade: "A1" } }, rank: 3, remarks: "Karthik has a strong grasp of languages and logical subjects. His hard work is reflected in his excellent grades." },
+                { id: 4, name: "Saanvi Naidu", marks: { English: { score: 68, grade: "A2" }, Hindi: { score: 78, grade: "A1" }, Kannada: { score: 71, grade: "A2" }, Maths: { score: 74, grade: "A1" }, Science: { score: 78, grade: "A1" }, Social: { score: 79, grade: "A1" }, Comp: { score: 78, grade: "A1" } }, rank: 4, remarks: "A very consistent and high-performing student. Saanvi shows great potential and a strong aptitude for learning." },
+                { id: 5, name: "Charan B", marks: { English: { score: 67, grade: "A2" }, Hindi: { score: 73, grade: "A1" }, Kannada: { score: 77, grade: "A1" }, Maths: { score: 77, grade: "A1" }, Science: { score: 73, grade: "A1" }, Social: { score: 78, grade: "A1" }, Comp: { score: 70, grade: "A2" } }, rank: 4, remarks: "Charan excels in analytical subjects like Maths and has a strong command of languages. A well-rounded performance." },
+                { id: 6, name: "Avnitha Pothumudi", marks: { English: { score: 69, grade: "A2" }, Hindi: { score: 72, grade: "A2" }, Kannada: { score: 64, grade: "B1" }, Maths: { score: 75, grade: "A1" }, Science: { score: 77, grade: "A1" }, Social: { score: 80, grade: "A1" }, Comp: { score: 70, grade: "A2" } }, rank: 5, remarks: "Avnitha's scores in Social Studies and Science are outstanding. She shows great curiosity and a passion for these subjects." },
+                { id: 7, name: "Chetan B", marks: { English: { score: 69, grade: "A2" }, Hindi: { score: 63, grade: "B1" }, Kannada: { score: 69, grade: "A2" }, Maths: { score: 78, grade: "A1" }, Science: { score: 73, grade: "A1" }, Social: { score: 76, grade: "A1" }, Comp: { score: 74, grade: "A1" } }, rank: 6, remarks: "Excellent performance in Maths. Chetan is a diligent student who shows great promise with continued focus." },
+                { id: 8, name: "Siddarth Mishra", marks: { English: { score: 64, grade: "B1" }, Hindi: { score: 80, grade: "A1" }, Kannada: { score: 54, grade: "B2" }, Maths: { score: 69, grade: "A2" }, Science: { score: 74, grade: "A1" }, Social: { score: 69, grade: "A2" }, Comp: { score: 59, grade: "B1" } }, rank: 7, remarks: "Perfect score in Hindi shows Siddarth's linguistic talent. A strong performance in Science is also noted." },
+                { id: 9, name: "Sujan R D", marks: { English: { score: 56, grade: "B2" }, Hindi: { score: 60, grade: "B1" }, Kannada: { score: 73, grade: "A1" }, Maths: { score: 69, grade: "A2" }, Science: { score: 63, grade: "B1" }, Social: { score: 67, grade: "A2" }, Comp: { score: 64, grade: "B1" } }, rank: 8, remarks: "Sujan has shown great strength in Kannada. A dedicated effort across all subjects is visible. Keep it up!" },
+                { id: 10, name: "Akshara Sai", marks: { English: { score: 61, grade: "B1" }, Hindi: { score: 62, grade: "B1" }, Kannada: { score: 64, grade: "B1" }, Maths: { score: 68, grade: "A2" }, Science: { score: 64, grade: "B1" }, Social: { score: 66, grade: "A2" }, Comp: { score: 68, grade: "A2" } }, rank: 9, remarks: "A very balanced and consistent performance. Akshara shows good understanding and is a promising student." },
+                { id: 11, name: "Kundan Nayak K", marks: { English: { score: 61, grade: "B1" }, Hindi: { score: 46, grade: "C1" }, Kannada: { score: 51, grade: "B2" }, Maths: { score: 70, grade: "A2" }, Science: { score: 61, grade: "B1" }, Social: { score: 50, grade: "B2" }, Comp: { score: 53, grade: "B2" } }, rank: 10, remarks: "Kundan's aptitude for Mathematics is commendable. Focused effort in languages will yield great results." },
+                { id: 12, name: "Sriaaradhya Abakari", marks: { English: { score: 49, grade: "B2" }, Hindi: { score: 51, grade: "B2" }, Kannada: { score: 55, grade: "B2" }, Maths: { score: 64, grade: "B1" }, Science: { score: 65, grade: "A2" }, Social: { score: 53, grade: "B2" }, Comp: { score: 55, grade: "B2" } }, rank: 11, remarks: "Sriaaradhya shows strong potential, particularly in Science. Consistent hard work will lead to further improvement." },
+                { id: 13, name: "Deekshitha E", marks: { English: { score: 49, grade: "B2" }, Hindi: { score: 52, grade: "B2" }, Kannada: { score: 59, grade: "B1" }, Maths: { score: 54, grade: "B2" }, Science: { score: 55, grade: "B2" }, Social: { score: 64, grade: "B1" }, Comp: { score: 56, grade: "B2" } }, rank: 12, remarks: "A steady and positive performance. Deekshitha is a dedicated student who is showing consistent progress." },
+                { id: 14, name: "Vegiraju Aravind Varma", marks: { English: { score: 44, grade: "C1" }, Hindi: { score: 52, grade: "B2" }, Kannada: { score: 75, grade: "A1" }, Maths: { score: 55, grade: "B2" }, Science: { score: 47, grade: "C1" }, Social: { score: 45, grade: "C1" }, Comp: { score: 35, grade: "C2" } }, rank: 13, remarks: "Excellent score in Kannada shows great linguistic ability. Focusing on core science and social concepts will be beneficial." },
+                { id: 15, name: "CL Charvi Sanjana", marks: { English: { score: 60, grade: "B1" }, Hindi: { score: 0, grade: "E" }, Kannada: { score: 59, grade: "B1" }, Maths: { score: 59, grade: "B1" }, Science: { score: 65, grade: "A2" }, Social: { score: 61, grade: "B1" }, Comp: { score: 55, grade: "B2" } }, rank: 14, remarks: "Charvi shows good capability in Science and English. Regular attendance and practice in Hindi is highly encouraged." },
+                { id: 16, name: "Kanchi Shilpitha", marks: { English: { score: 42, grade: "C1" }, Hindi: { score: 49, grade: "B2" }, Kannada: { score: 35, grade: "C2" }, Maths: { score: 56, grade: "B2" }, Science: { score: 58, grade: "B1" }, Social: { score: 55, grade: "B2" }, Comp: { score: 65, grade: "A2" } }, rank: 15, remarks: "Kanchi is showing good progress. With continued effort and focus, especially in languages, she can achieve higher grades." },
+                { id: 17, name: "Mohammed Muhib K", marks: { English: { score: 46, grade: "C1" }, Hindi: { score: 45, grade: "C1" }, Kannada: { score: 58, grade: "B1" }, Maths: { score: 59, grade: "B1" }, Science: { score: 42, grade: "C1" }, Social: { score: 43, grade: "C1" }, Comp: { score: 47, grade: "C1" } }, rank: 16, remarks: "Muhib has a good foundation and is capable of great improvement. Let's work on building more confidence in core subjects." },
+                { id: 18, name: "Strawberry HM", marks: { English: { score: 35, grade: "C2" }, Hindi: { score: 35, grade: "C2" }, Kannada: { score: 28, grade: "D" }, Maths: { score: 44, grade: "C1" }, Science: { score: 22, grade: "E" }, Social: { score: 29, grade: "D" }, Comp: { score: 30, grade: "D" } }, rank: 17, remarks: "Shows a positive attitude in class. Dedicated support and focused revision are needed to improve academic scores." }
+            ].map(s => {
+                const totalScore = Object.entries(s.marks).filter(([key]) => key !== 'Comp').reduce((acc, [, val]) => acc + val.score, 0);
+                const percentage = ((totalScore / 480) * 100).toFixed(2) + '%';
+                let grade;
+                const p = parseFloat(percentage);
+                if (p >= 90) grade = 'A1'; else if (p >= 80) grade = 'A2'; else if (p >= 70) grade = 'B1'; else if (p >= 60) grade = 'B2'; else if (p >= 50) grade = 'C1'; else if (p >= 40) grade = 'C2'; else grade = 'D';
+                return {...s, percentage, overallGrade: grade};
+            }),
+            toppers: [
+                { rank: 1, name: "Samrrudhe K", icon: '🥇' },
+                { rank: 2, name: "Hrithika T", icon: '🥈' },
+                { rank: 3, name: "Karthik P", icon: '🥉' },
+                { rank: 4, name: "Saanvi Naidu & Charan B", icon: '🏅' },
+                { rank: 5, name: "Avnitha Pothumudi", icon: '🏅' }
+            ]
+        };
+
+        const { students, toppers } = class6Data;
+        const elements = {
+            appContainer: document.getElementById('app-container'),
+            welcomeScreen: document.getElementById('welcome-screen'),
+            studentSelect: document.getElementById('student-select'),
+            enterBtn: document.getElementById('enter-btn'),
+            backBtn: document.getElementById('back-btn'),
+            selectionView: document.getElementById('selection-view'),
+            reportView: document.getElementById('report-view'),
+            toppersList: document.getElementById('toppers-list'),
+            studentNameHeader: document.getElementById('student-name-header'),
+            overallGrade: document.getElementById('overall-grade'),
+            overallPercentage: document.getElementById('overall-percentage'),
+            overallRank: document.getElementById('overall-rank'),
+            remarksText: document.getElementById('remarks-text'),
+            scorecardContainer: document.getElementById('scorecard-container'),
+            aspirationInputArea: document.getElementById('aspiration-input-area'),
+            aspirationInput: document.getElementById('aspiration-input'),
+            aspirationSubmit: document.getElementById('aspiration-submit'),
+            aspirationResultArea: document.getElementById('aspiration-result-area')
+        };
+
+        function initializeApp() {
+            setTimeout(() => {
+                elements.welcomeScreen.style.opacity = '0';
+                elements.appContainer.style.opacity = '1';
+                setTimeout(() => { elements.welcomeScreen.style.display = 'none'; }, 1000);
+            }, 3000);
+
+            elements.studentSelect.innerHTML = '<option value="">-- Select Your Child\'s Name --</option>';
+            students.sort((a, b) => a.name.localeCompare(b.name)).forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id; option.textContent = student.name;
+                elements.studentSelect.appendChild(option);
+            });
+            elements.toppersList.innerHTML = toppers.map(t => `<div class="topper-card p-3 rounded-lg flex items-center shadow-md"><span class="text-3xl mr-4">${t.icon}</span><div><p class="font-bold text-lg text-cyan-300">Rank ${t.rank}</p><p class="font-semibold text-gray-300">${t.name}</p></div></div>`).join('');
+        }
+
+        elements.enterBtn.addEventListener('click', () => {
+            const studentId = elements.studentSelect.value;
+            if (studentId) {
+                const student = students.find(s => s.id == studentId);
+                if (student.rank <= 5) launchConfetti();
+                populateReport(student);
+                elements.selectionView.style.display = 'none';
+                elements.reportView.classList.remove('hidden');
+                elements.reportView.style.display = 'block';
+            }
+        });
+
+        elements.backBtn.addEventListener('click', () => {
+            elements.selectionView.style.display = 'block';
+            elements.reportView.style.display = 'none';
+        });
+        
+        elements.aspirationSubmit.addEventListener('click', () => {
+            if (elements.aspirationInput.value.trim() !== "") {
+                elements.aspirationInputArea.style.display = 'none';
+                elements.aspirationResultArea.classList.remove('hidden');
+            }
+        });
+
+        function populateReport(student) {
+            elements.studentNameHeader.textContent = student.name;
+            elements.overallGrade.textContent = student.overallGrade;
+            elements.overallPercentage.textContent = student.percentage;
+            elements.overallRank.textContent = student.rank;
+            elements.remarksText.textContent = student.remarks;
+
+            elements.scorecardContainer.innerHTML = Object.entries(student.marks).map(([subject, data]) => {
+                const percentage = (data.score / 80) * 100;
+                const color = percentage >= 90 ? '#22d3ee' : percentage >= 75 ? '#67e8f9' : percentage >= 60 ? '#a5f3fc' : '#fda4af';
+                return `<div>
+                    <div class="flex justify-between font-semibold mb-1 text-lg"><span>${subject}</span><span>${data.score}/80 <span class="text-sm opacity-80">${data.grade}</span></span></div>
+                    <div class="progress-bar-container"><div class="progress-bar" style="width: 0%; background: ${color};" data-width="${percentage}%"></div></div>
+                </div>`;
+            }).join('');
+            
+            setTimeout(() => {
+                document.querySelectorAll('.progress-bar').forEach(bar => {
+                    bar.style.width = bar.dataset.width;
+                });
+            }, 100);
+
+            elements.aspirationInputArea.style.display = 'block';
+            elements.aspirationResultArea.classList.add('hidden');
+            elements.aspirationInput.value = "";
+        }
+        
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+        function launchConfetti() {
+             confettiParticles = [];
+             for(let i=0; i<100; i++) {
+                 confettiParticles.push({
+                     x: confettiCanvas.width * Math.random(),
+                     y: -20,
+                     size: Math.random() * 5 + 2,
+                     speedX: Math.random() * 6 - 3,
+                     speedY: Math.random() * 2 + 3,
+                     color: `hsl(${Math.random() * 60 + 180}, 100%, 70%)`,
+                     angle: 0,
+                     spin: Math.random() * 0.4 - 0.2
+                 })
+             }
+             animateConfetti();
+        }
+
+        function animateConfetti() {
+            if(confettiParticles.length === 0) {
+                if(confettiCtx) confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+                return;
+            }
+            if(confettiCtx) confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+            
+            let stillAnimating = false;
+            confettiParticles.forEach((p,i) => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.angle += p.spin;
+
+                if(p.y > confettiCanvas.height + p.size) {
+                    confettiParticles.splice(i, 1);
+                } else {
+                    stillAnimating = true;
+                    confettiCtx.save();
+                    confettiCtx.translate(p.x, p.y);
+                    confettiCtx.rotate(p.angle);
+                    confettiCtx.fillStyle = p.color;
+                    confettiCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                    confettiCtx.restore();
+                }
+            })
+            if(stillAnimating) requestAnimationFrame(animateConfetti);
+        }
+
+        initializeApp();
+    });
+    </script>
+</body>
+</html>
